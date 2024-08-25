@@ -1,12 +1,15 @@
 import React from "react";
 
 import { Route, Routes, useNavigate} from 'react-router-dom'
+import Sidebar from "./components/Sidebar";
+
 
 const App = () => {
     return (
         <div className="flex relative min-h-screen flex-row bg-[#13131a]">
             <div className="relative mr-10 hidden sm:flex">
                 {/* sidebar */}
+                <Sidebar />
 
             </div>
 
