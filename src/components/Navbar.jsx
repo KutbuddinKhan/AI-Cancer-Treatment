@@ -1,13 +1,21 @@
-import React, { useCallback } from "react";
-import { search } from "../assets";
+import React, { useCallback, useState } from "react";
+import { menu, search } from "../assets";
 import CustomButton from "./CustomButton";
 
 import { usePrivy } from "@privy-io/react-auth";
+import { IconHeartHandshake } from "@tabler/icons-react";
+
+import { navlinks } from "../constants";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate()
+  const [isActive, setIsActive] = useState("dashboard")
   const { ready, authenticated, login, user, logout } = usePrivy();
 
-  console.log("user info:", user)
+  const [toggleDrawer, setToggleDrawer] = useState(false);
+
+  console.log("user info:", user);
 
   const handleLoginLogout = useCallback(() => {
     if (authenticated) {
@@ -48,10 +56,46 @@ const Navbar = () => {
         />
       </div>
 
+    {/* Mobile Navbar */}
       <div className="relative flex items-center justify-between sm:hidden">
-        
-      </div>
+        <div className="flex h-[40px] cursor-pointer items-center justify-center rounded-[10px] bg-[#2c2f32]">
+          <IconHeartHandshake size={40} color="#1ec070" className="p-2" />
+        </div>
+        <img
+          src={menu}
+          alt="menu"
+          className="h-[34px] w-[34px] cursor-pointer object-contain"
+          onClick={() => {
+            setToggleDrawer((prev) => !prev);
+          }}
+        />
 
+        <div className={`absolute left-0 right-0 top-[60px] z-10 bg-[#1c1c24] py-4 shadow-secondary ${!toggleDrawer ? '-translate-y-[100vh]' : 'translate-y-0'} transition-all duration-700`}>
+          <ul className="mb-4">
+            {navlinks.map((link) => (
+              <li key={link.name} 
+                className={`flex p-4 ${isActive === link.name && 'bg-[#3a3a43]'}`}
+                onClick={() => {
+                  setIsActive(link.name)
+                  setToggleDrawer(false)
+                  navigate(link.link)
+                }}
+              >
+                  <img 
+                    src={link.imgUrl}
+                    alt={link.name}
+                    className={`h-[24px] w-[24px] object-contain ${isActive === link.name ? "grayscale-0" : "grayscale"}`}
+                  />
+
+                  <p className={`ml-[20px] font-epilogue text-[14px] font-semibold ${isActive === link.name ? "text-[#1dc071]" : "text-[#808191]"}`}>
+                    {link.name}
+                  </p>
+              </li>
+            ))}
+          </ul>
+          <div className="mx-4 flex"></div>
+        </div>
+      </div>
     </div>
   );
 };
