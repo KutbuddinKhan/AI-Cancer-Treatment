@@ -1,16 +1,39 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { usePrivy } from "@privy-io/react-auth";
+
+import { useStateContext } from "../context";
 
 const Onboarding = () => {
+  const { createUser } = useStateContext();
+
   const [username, setUsername] = useState("");
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
 
-  const handleOnboarding = async (e) => {
-    e.preventDefault()
+  const navigate = useNavigate()
 
-    console.log(username, age, location)
-  }
+  const { user } = usePrivy();
+
+  console.log(user);
+
+  const handleOnboarding = async (e) => {
+    e.preventDefault();
+
+    const userData = {
+      username,
+      age: parseInt(age, 10),
+      location,
+      createdBy: user.email.address,
+    };
+
+    const newUser = await createUser(userData)
+
+    if(newUser) {
+      navigate("/profile")
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#13131a]">
