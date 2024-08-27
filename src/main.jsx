@@ -7,6 +7,7 @@ import { PrivyProvider } from "@privy-io/react-auth";
 
 import App from "./App";
 import "./index.css";
+import { StateContextProvider } from "./context";
 
 const root = ReactDom.createRoot(document.getElementById("root"));
 
@@ -24,7 +25,9 @@ root.render(
     }}
   >
     <Router>
-      <App />
+      <StateContextProvider>
+        <App />
+      </StateContextProvider>
     </Router>
   </PrivyProvider>,
 );
