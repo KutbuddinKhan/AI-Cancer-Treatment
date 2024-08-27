@@ -4,6 +4,7 @@ import { Route, Routes, useNavigate} from 'react-router-dom'
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import { Onboarding } from "./pages";
 
 
 const App = () => {
@@ -21,7 +22,7 @@ const App = () => {
                 
                 <Routes>
                     <Route path="/" element={ <Home /> } />
-
+                    <Route path="/onboarding" element={ <Onboarding /> } />
                 </Routes>
             </div>
         </div>
