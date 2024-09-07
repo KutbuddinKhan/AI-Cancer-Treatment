@@ -6,6 +6,7 @@ import {
 } from "@tabler/icons-react";
 import { useStateContext } from "../../context/index";
 import { useLocation, useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import FileUploadModal from "./components/file-upload-modal";
 import RecordDetailsHeader from "./components/record-details-header";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -72,28 +73,36 @@ const SingleRecordDetails = () => {
       ];
 
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-pro"
-      })
+        model: "gemini-1.5-pro",
+      });
 
-      const prompt = `You are an expert cancer and any disease diagnosis analyst. Use your knowledge base to answer questions about giving personalized recommended treatments.
-      give a detailed treatment plan for me, make it more readable, clear and easy to understand make it paragraphs to make it more readable
-      `;
+      const prompt = `You are a highly experienced expert in cancer diagnosis and personalized treatment planning. Using your extensive medical knowledge, provide a detailed and comprehensive treatment plan tailored to a specific patient’s condition. The treatment plan should be easy to understand, written in clear, concise, and professional language.
+        Ensure that the recommendations are well-organized into readable paragraphs, covering every relevant aspect, including surgery, chemotherapy, radiation, immunotherapy, targeted therapy, and supportive care. Break down complex information and medical terminology so that it is accessible, but still accurate. Additionally, address any potential side effects, lifestyle changes, and follow-up care.
+        Make sure to provide guidance for the patient’s physical, emotional, and nutritional needs, offering a holistic approach to their recovery.`;
 
-      const result = await model.generateContent([prompt, ...imageParts])
-      const response = await result.response
-      const text = response.text()
-      setAnalysisResult(text)
-     
-      const updateRecord = await updateRecord({
+      // Await the generative AI content
+      const result = await model.generateContent([prompt, ...imageParts]);
+      const response = await result.response;
+      const text = await response.text(); // Await the response text
+      setAnalysisResult(text);
+
+      // Rename the variable to avoid overwriting the function
+      const updatedRecordResult = await updateRecord({
         documentID: state.id,
         analysisResult: text,
         kanbanRecords: "",
       });
 
-      setUploadSuccess(true)
-      setIsModalOpen(false) // close the modal after a successfull upload
-      setFilename("")
-      setFile(null)
+      if (updatedRecordResult) {
+        console.log("Record updated successfully", updatedRecordResult);
+      } else {
+        console.error("Failed to update the record");
+      }
+
+      setUploadSuccess(true);
+      setIsModalOpen(false); // Close the modal after a successful upload
+      setFilename("");
+      setFile(null);
       setFiletype("");
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -146,7 +155,9 @@ const SingleRecordDetails = () => {
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
                       Analysis Result
                     </h2>
-                    <div className="space-y-2">{analysisResult}</div>
+                    <div className="space-y-2">
+                      <ReactMarkdown>{analysisResult}</ReactMarkdown>
+                    </div>
                   </div>
 
                   <div className="mt-5 grid gap-2 sm:flex">
@@ -157,7 +168,7 @@ const SingleRecordDetails = () => {
                     >
                       View Treatment plan
                       <IconChevronRight size={20} />
-                      {true && (
+                      {processing && (
                         <IconProgress
                           size={10}
                           className="mr-3 h-5 w-5 animate-spin"

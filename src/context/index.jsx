@@ -87,12 +87,21 @@ export const StateContextProvider = ({ children }) => {
   const updateRecord = useCallback(async (recordData) => {
     try {
       const { documentID, ...dataToUpdate } = recordData;
+  
+      if (!documentID) {
+        console.error("Document ID is missing");
+        return null;
+      }
+      
       console.log(documentID, dataToUpdate);
+      
       const updatedRecords = await db
         .update(Records)
         .set(dataToUpdate)
         .where(eq(Records.id, documentID))
         .returning();
+
+      return updatedRecords;
     } catch (error) {
       console.error("Error updating record:", error);
       return null;
