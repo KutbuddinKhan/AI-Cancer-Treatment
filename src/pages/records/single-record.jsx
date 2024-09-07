@@ -8,6 +8,9 @@ import { useStateContext } from "../../context/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import FileUploadModal from "./components/file-upload-modal";
 import RecordDetailsHeader from "./components/record-details-header";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 const SingleRecordDetails = () => {
   const { state } = useLocation();
@@ -35,27 +38,91 @@ const SingleRecordDetails = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    setFiletype(file.type)
-    setFilename(file.name)
-    setFile(file)
-  } 
+    const file = e.target.files[0];
+    setFiletype(file.type);
+    setFilename(file.name);
+    setFile(file);
+  };
+
+  const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileUpload = async () => {
+    setUploading(true);
+    setUploadSuccess(false);
+
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+
+    try {
+      const base64Data = await readFileAsBase64(file);
+
+      const imageParts = [
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: filetype,
+          },
+        },
+      ];
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro"
+      })
+
+      const prompt = `You are an expert cancer and any disease diagnosis analyst. Use your knowledge base to answer questions about giving personalized recommended treatments.
+      give a detailed treatment plan for me, make it more readable, clear and easy to understand make it paragraphs to make it more readable
+      `;
+
+      const result = await model.generateContent([prompt, ...imageParts])
+      const response = await result.response
+      const text = response.text()
+      setAnalysisResult(text)
+     
+      const updateRecord = await updateRecord({
+        documentID: state.id,
+        analysisResult: text,
+        kanbanRecords: "",
+      });
+
+      setUploadSuccess(true)
+      setIsModalOpen(false) // close the modal after a successfull upload
+      setFilename("")
+      setFile(null)
+      setFiletype("");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      setUploadSuccess(false);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="flex flex-wrap gap-[26px]">
       <button
         type="button"
-        // onClick={handleOpenModal}
-        onClick={() => {}}
+        onClick={handleOpenModal}
         className="mt-6 inline-flex items-center gap-x-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-700 dark:bg-[#13131a] dark:text-white dark:hover:bg-neutral-800"
       >
-        {/* <IconFileUpload /> */}
+        <IconFileUpload />
         <span>Upload Reports</span>
       </button>
 
       {/* file Upload modal */}
       <FileUploadModal
-      // isOpen={isModalOpen}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onFileChange={handleFileChange}
+        onFileUpload={handleFileUpload}
+        uploading={uploading}
+        uploadSuccess={uploadSuccess}
+        filename={filename}
       />
 
       <RecordDetailsHeader recordName={state.recordName} />
