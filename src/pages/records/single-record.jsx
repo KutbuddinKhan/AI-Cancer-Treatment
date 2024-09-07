@@ -82,8 +82,8 @@ const SingleRecordDetails = () => {
 
       // Await the generative AI content
       const result = await model.generateContent([prompt, ...imageParts]);
-      const response = await result.response;
-      const text = await response.text(); // Await the response text
+      const response = result.response;
+      const text = response.text(); // Await the response text
       setAnalysisResult(text);
 
       // Rename the variable to avoid overwriting the function
@@ -111,6 +111,60 @@ const SingleRecordDetails = () => {
       setUploading(false);
     }
   };
+
+  const processTreatmentPlan = async () => {
+    setIsProcessing(true)
+
+    const genAI = new GoogleGenerativeAI(geminiApiKey)
+
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro"
+    })
+
+    const prompt = `Your role and goal is to be an that will be using this treatment plan ${analysisResult} to create Columns:
+    - Todo: Tasks that need to be started
+    - Doing: Tasks that are in progress
+    - Done: Tasks that are completed
+
+    Each task should include a brief description. The tasks should be categorized appropriately based on the stage of the treatment process.
+
+    Please provide the results in the following  format for easy front-end display no quotating or what so ever just pure the structure below:
+
+    {
+      "columns": [
+        { "id": "todo", "title": "Todo" },
+        { "id": "doing", "title": "Work in progress" },
+        { "id": "done", "title": "Done" }
+      ],
+      "tasks": [
+        { "id": "1", "columnId": "todo", "content": "Example task 1" },
+        { "id": "2", "columnId": "todo", "content": "Example task 2" },
+        { "id": "3", "columnId": "doing", "content": "Example task 3" },
+        { "id": "4", "columnId": "doing", "content": "Example task 4" },
+        { "id": "5", "columnId": "done", "content": "Example task 5" }
+      ]
+    }
+                
+    `;
+
+    const result = await model.generateContent(prompt)
+    const response = result.response;
+    const text = response.text()
+    const parsedResponse = JSON.parse(text)
+
+    console.log(text)
+    console.log(parsedResponse)
+
+    const updatedRecord = await updateRecord({
+        documentID: state.id,
+        kanbanRecords: text,
+    });
+    console.log(updatedRecord)
+    navigate("/screening-schedules", {
+        state: parsedResponse
+    })
+    setIsProcessing(false)
+  }
 
   return (
     <div className="flex flex-wrap gap-[26px]">
@@ -163,7 +217,7 @@ const SingleRecordDetails = () => {
                   <div className="mt-5 grid gap-2 sm:flex">
                     <button
                       type="button"
-                      onClick={() => {}}
+                      onClick={processTreatmentPlan}
                       className="inline-flex items-center gap-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
                     >
                       View Treatment plan
