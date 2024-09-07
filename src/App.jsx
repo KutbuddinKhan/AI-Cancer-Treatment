@@ -11,6 +11,7 @@ import MedicalRecord from "./pages/records/index";
 import { useStateContext } from "./context";
 import { usePrivy } from "@privy-io/react-auth";
 import SingleRecordDetails from "./pages/records/single-record";
+import ScreeningSchedule from "./pages/ScreeningSchedule";
 
 const App = () => {
   const navigate = useNavigate();
@@ -47,6 +48,8 @@ const App = () => {
             path="/medical-records/:id"
             element={<SingleRecordDetails />}
           />
+
+          <Route path="/screening-schedules" element={<ScreeningSchedule />} />
         </Routes>
       </div>
     </div>
