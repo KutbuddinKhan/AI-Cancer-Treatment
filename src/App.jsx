@@ -5,12 +5,12 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
-import { Home, Profile, Onboarding} from './pages'
-import MedicalRecord from './pages/records/index'
+import { Home, Profile, Onboarding } from "./pages";
+import MedicalRecord from "./pages/records/index";
 
 import { useStateContext } from "./context";
 import { usePrivy } from "@privy-io/react-auth";
-
+import SingleRecordDetails from "./pages/records/single-record";
 
 const App = () => {
   const navigate = useNavigate();
@@ -25,8 +25,6 @@ const App = () => {
       navigate("/onboarding");
     }
   }, [ready, currentUser, navigate]);
-
-
 
   return (
     <div className="relative flex min-h-screen flex-row bg-[#13131a]">
@@ -45,6 +43,10 @@ const App = () => {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/medical-records" element={<MedicalRecord />} />
+          <Route
+            path="/medical-records/:id"
+            element={<SingleRecordDetails />}
+          />
         </Routes>
       </div>
     </div>
